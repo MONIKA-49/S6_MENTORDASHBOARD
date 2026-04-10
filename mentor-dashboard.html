@@ -1,0 +1,1208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mentor Dashboard</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .view-section { display: none; }
+    .view-section.active { display: block; animation: fadeIn 0.3s ease-in-out; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  </style>
+</head>
+<body>
+  <div class="dashboard-layout">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <h2>👨‍🏫 Mentor Portal</h2>
+      </div>
+      <div class="nav-links">
+        <a href="#" class="nav-item active" onclick="switchView('overview')"><span>Overview & Students</span></a>
+        <a href="#" class="nav-item" onclick="switchView('attendance')"><span>Attendance Tracking</span></a>
+        <a href="#" class="nav-item" onclick="switchView('leaves')"><span>Leave Approvals</span></a>
+        <a href="#" class="nav-item" onclick="switchView('tasks')"><span>Task Management</span></a>
+        <a href="#" class="nav-item" onclick="switchView('calendar')"><span>Calendar Scheduler</span></a>
+        <a href="#" class="nav-item" onclick="switchView('meetings')"><span>Meeting Scheduler</span></a>
+        <a href="#" class="nav-item" onclick="switchView('analytics')"><span>Performance Analytics</span></a>
+        <a href="#" class="nav-item" onclick="switchView('documents')"><span>Documents & Resources</span></a>
+        <a href="#" class="nav-item" onclick="switchView('messages')"><span>Messages</span></a>
+        <a href="#" class="nav-item" onclick="switchView('parentcomm')"><span>Parent Comm.</span></a>
+        <a href="#" class="nav-item" onclick="switchView('notifications')"><span>Notifications</span></a>
+        <a href="#" class="nav-item" onclick="switchView('reports')"><span>Reports Export</span></a>
+        <a href="#" class="nav-item" onclick="switchView('settings')"><span>Settings</span></a>
+      </div>
+      <div class="user-profile">
+        <div class="avatar">M</div>
+        <div>
+          <strong class="sidebar-username" style="display:block; font-size:0.875rem;">Mentor</strong>
+          <a href="#" class="logout-btn" style="font-size:0.75rem; color:var(--danger);">Logout</a>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <div class="topbar">
+        <h1 class="page-title" id="page-title">Mentor Overview</h1>
+        <div style="display:flex; align-items:center; gap:1rem;">
+          <span class="badge badge-primary">Notifications: Active</span>
+          <button class="theme-toggle-btn" onclick="toggleTheme()" title="Toggle Theme">🌙</button>
+        </div>
+      </div>
+
+      <div class="content-area">
+        
+        <!-- View: Overview -->
+        <div id="view-overview" class="view-section active">
+          <!-- Stats -->
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-icon" style="background: rgba(79, 70, 229, 0.1); color: var(--primary);">👥</div>
+              <div class="stat-info"><h3>Assigned Students</h3><p id="stat-students">0</p></div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon" style="background: rgba(16, 185, 129, 0.1); color: var(--success);">✅</div>
+              <div class="stat-info"><h3>Avg Attendance</h3><p id="stat-attendance">0%</p></div>
+            </div>
+          </div>
+
+          <!-- Risk Alert Banner -->
+          <div id="risk-alert-banner" style="display:none; background:rgba(239, 68, 68, 0.05); border-left:4px solid var(--danger); padding:1.5rem; border-radius:var(--radius-md); margin-bottom:2rem; color:var(--text-main); border:1px solid rgba(239,68,68,0.2);">
+             <h3 style="color:var(--danger); display:flex; align-items:center; gap:0.5rem; margin-bottom:0.5rem;">⚠️ System Alert: At-Risk Students Identified</h3>
+             <p style="font-size:0.875rem; margin-bottom:0.75rem;">The predictive monitoring algorithms have isolated the following assigned students scoring significantly below threshold averages (CGPA < 7.0).</p>
+             <ul id="risk-alert-list" style="margin-left:1.5rem; font-size:0.875rem; font-weight:600; color:var(--danger);"></ul>
+          </div>
+
+          <!-- Students Table -->
+          <div class="data-container">
+            <div class="data-header" style="display:flex; justify-content:space-between; align-items:center;">
+              <h2>My Students List</h2>
+              <input type="text" id="student-search" class="form-control" style="width:250px; padding:0.5rem;" placeholder="Search name or Reg no..." onkeyup="filterStudents()">
+            </div>
+            <div class="table-wrapper">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Reg No</th>
+                    <th>Name</th>
+                    <th>Dept</th>
+                    <th>CGPA</th>
+                    <th>Overall Remarks</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="students-table-body"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- View: Tasks -->
+        <div id="view-tasks" class="view-section">
+          <div class="grid-2">
+            <div class="data-container">
+              <div class="data-header"><h2>Assign New Task</h2></div>
+              <div style="padding: 1.5rem;">
+                <div class="form-group">
+                  <label>Assign To (Student Reg No)</label>
+                  <select id="task-student" class="form-control"></select>
+                </div>
+                <div class="form-group">
+                  <label>Task Title</label>
+                  <input type="text" id="task-title" class="form-control" placeholder="e.g. Complete Assignment 1">
+                </div>
+                <div class="form-group">
+                  <label>Deadline</label>
+                  <input type="date" id="task-deadline" class="form-control">
+                </div>
+                <button class="btn-primary" onclick="assignTask()">Assign Task</button>
+              </div>
+            </div>
+            <div class="data-container">
+              <div class="data-header"><h2>Tasks Status</h2></div>
+              <div class="table-wrapper">
+                <table>
+                  <thead><tr><th>Title</th><th>Student</th><th>Deadline</th><th>Status</th></tr></thead>
+                  <tbody id="tasks-table-body"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- View: Meetings -->
+        <div id="view-meetings" class="view-section">
+           <div class="grid-2">
+             <div class="data-container">
+               <div class="data-header"><h2>Schedule Meeting</h2></div>
+               <div style="padding: 1.5rem;">
+                 <div class="form-group">
+                   <label>Student</label>
+                   <select id="meeting-student" class="form-control"></select>
+                 </div>
+                 <div class="form-group">
+                   <label>Date & Time</label>
+                   <input type="datetime-local" id="meeting-date" class="form-control">
+                 </div>
+                 <div class="form-group">
+                   <label>Notes</label>
+                   <input type="text" id="meeting-notes" class="form-control">
+                 </div>
+                 <button class="btn-primary" onclick="scheduleMeeting()">Schedule</button>
+               </div>
+             </div>
+             
+             <div class="data-container">
+                <div class="data-header"><h2>Upcoming Meetings</h2></div>
+                <div class="table-wrapper">
+                  <table>
+                    <thead><tr><th>Date & Time</th><th>Student</th><th>Notes</th></tr></thead>
+                    <tbody id="meetings-table-body"></tbody>
+                  </table>
+                </div>
+              </div>
+           </div>
+        </div>
+
+        <!-- View: Documents -->
+        <div id="view-documents" class="view-section">
+           <div class="grid-2">
+             <div class="data-container">
+               <div class="data-header"><h2>Upload Material</h2></div>
+               <div style="padding: 1.5rem;">
+                 <div class="form-group">
+                   <label>Share With</label>
+                   <select id="doc-student" class="form-control">
+                     <option value="ALL">All Assigned Students</option>
+                   </select>
+                 </div>
+                 <div class="form-group">
+                   <label>Document Title</label>
+                   <input type="text" id="doc-title" class="form-control" placeholder="e.g. Study Guide Midterms">
+                 </div>
+                 <input type="file" id="doc-upload" class="form-control" style="margin-bottom:1rem; padding:0.5rem;">
+                 <button class="btn-primary" onclick="uploadDocument()">Upload & Share</button>
+               </div>
+             </div>
+             
+             <div class="data-container">
+                <div class="data-header"><h2>Shared Resources</h2></div>
+                <div class="table-wrapper">
+                  <table>
+                    <thead><tr><th>Title</th><th>Shared With</th><th>Action</th></tr></thead>
+                    <tbody id="documents-table-body"></tbody>
+                  </table>
+                </div>
+              </div>
+           </div>
+        </div>
+
+        <!-- View: Analytics -->
+        <div id="view-analytics" class="view-section">
+           <div class="data-container" style="padding: 2rem; margin-bottom: 2rem;">
+              <h2>Performance Analytics</h2>
+              <p style="color: var(--text-muted); margin-bottom: 2rem;">Class academic performance overview.</p>
+              
+              <div id="analytics-content">
+                <!-- Dynamically populated -->
+              </div>
+           </div>
+
+           <div class="data-container" style="padding: 2rem;">
+              <h2>Remedial Automation Tracker</h2>
+              <p style="color: var(--text-muted); margin-bottom: 1rem;">Status of auto-generated daily 10-question tests for students with CGPA < 6.5.</p>
+              <div class="table-wrapper">
+                 <table>
+                   <thead><tr><th>Student</th><th>Date</th><th>Test Status</th><th>Score</th></tr></thead>
+                   <tbody id="remedial-tracker-body">
+                      <!-- Populated by JS -->
+                   </tbody>
+                 </table>
+              </div>
+           </div>
+        </div>
+
+        <!-- View: Notifications -->
+        <div id="view-notifications" class="view-section">
+           <div class="grid-2">
+             <div class="data-container">
+               <div class="data-header"><h2>Send Announcement</h2></div>
+               <div style="padding: 1.5rem;">
+                 <div class="form-group">
+                   <label>Send To</label>
+                   <select id="announcement-student" class="form-control">
+                     <option value="ALL">All Assigned Students</option>
+                   </select>
+                 </div>
+                 <div class="form-group">
+                   <label>Message</label>
+                   <textarea id="announcement-msg" class="form-control" rows="4" placeholder="Enter your important message here..."></textarea>
+                 </div>
+                 <button class="btn-primary" onclick="sendAnnouncement()">Send Announcement</button>
+               </div>
+             </div>
+             
+             <div class="data-container">
+                <div class="data-header"><h2>Messages & Alerts</h2></div>
+                <div style="padding: 1.5rem;" id="mentor-messages-container">
+                   <!-- Messages go here -->
+                </div>
+              </div>
+           </div>
+        </div>
+
+        <!-- View: Student Profile Full Page -->
+        <div id="view-student-profile" class="view-section">
+           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+               <button class="btn-primary" style="width:auto; padding:0.5rem 1rem; background:var(--text-muted);" onclick="switchView('overview')">← Back to Overview</button>
+               <span id="profile-risk-badge" class="badge" style="font-size:1rem; padding:0.5rem 1rem;">Status: Unknown</span>
+           </div>
+
+           <!-- Upper Profile Area -->
+           <div class="profile-card" style="margin-bottom: 2rem;">
+             <div class="profile-img" id="sprof-initial">S</div>
+             <div class="profile-details" style="flex:1;">
+               <h2 id="sprof-name">Student Name</h2>
+               <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.5rem; margin-top:1rem;">
+                 <p><strong style="color:var(--text-main);">Email:</strong> <span id="sprof-email">-</span></p>
+                 <p><strong style="color:var(--text-main);">Reg No:</strong> <span id="sprof-regno">-</span></p>
+                 <p><strong style="color:var(--text-main);">Department:</strong> <span id="sprof-dept">-</span> (Year <span id="sprof-year">-</span>)</p>
+                 <p><strong style="color:var(--text-main);">Skills:</strong> <span id="sprof-skills">-</span></p>
+                 <p><strong style="color:var(--text-main);">Fee Status:</strong> <span id="sprof-fees">-</span></p>
+               </div>
+               <div style="margin-top: 1rem;">
+                 <button class="btn-primary" style="width:auto; padding:0.5rem 1rem; background: var(--secondary);" onclick="emailParent()">📧 Email Parents</button>
+               </div>
+             </div>
+           </div>
+
+           <!-- Academic Performance and Tracking Grid -->
+           <div class="grid-2">
+             <!-- Performance & Attendance -->
+             <div class="data-container">
+               <div class="data-header"><h2>Academic Overview</h2></div>
+               <div style="padding:1.5rem; text-align:center;">
+                  <div style="display:flex; justify-content:space-around; align-items:center; margin-bottom:1.5rem;">
+                     <div>
+                        <h1 style="font-size:3rem; color:var(--primary);" id="sprof-cgpa">0.0</h1>
+                        <p style="color:var(--text-muted); font-size:0.875rem;">CGPA</p>
+                     </div>
+                     <div style="position:relative; width:90px; height:90px; border-radius:50%; background:conic-gradient(var(--success) 0%, var(--border) 0%); display:flex; align-items:center; justify-content:center; transition:background 1s ease;" id="sprof-attendance-chart">
+                        <div style="background:var(--surface); width:70px; height:70px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1.2rem; font-weight:bold; color:var(--text-main);" id="sprof-attendance">0%</div>
+                     </div>
+                  </div>
+                  <hr style="border:0; border-top:1px solid var(--border); margin:1rem 0;">
+                  <h3 style="text-align:left; margin-bottom:0.75rem;">Recent Marks</h3>
+                  <div id="sprof-marks-list" style="text-align:left; font-size:0.875rem; color:var(--text-muted);"></div>
+               </div>
+             </div>
+
+             <!-- Project & Progress Tracking -->
+             <div class="data-container">
+               <div class="data-header"><h2>Tracking & Project</h2></div>
+               <div style="padding:1.5rem;">
+                  <h3 style="margin-bottom:0.5rem; color:var(--text-main);">Overall Progress</h3>
+                  <div style="display:flex; justify-content:space-between; margin-bottom:0.25rem; font-size:0.875rem;">
+                    <span>Degree Completion</span><span id="sprof-progress-text">0%</span>
+                  </div>
+                  <div style="background:var(--border); height:8px; border-radius:4px; overflow:hidden; margin-bottom:1.5rem;">
+                    <div id="sprof-progress-bar" style="background:var(--secondary); width:0%; height:100%; transition:width 1s;"></div>
+                  </div>
+
+                  <hr style="border:0; border-top:1px solid var(--border); margin:1rem 0;">
+                  <h3 style="margin-bottom:0.5rem; color:var(--text-main);">Project Details</h3>
+                  <p style="color:var(--text-muted); font-size:0.875rem; margin-bottom:1rem;">Mini Project focus: Interactive system with real-time feedback loops. Guided by assigned mentor.</p>
+
+                  <h3 style="margin-bottom:0.5rem; color:var(--text-main);">Skills Tracking</h3>
+                  <div id="sprof-skills-badges" style="display:flex; flex-wrap:wrap; gap:0.5rem;">
+                    <!-- Badges -->
+                  </div>
+               </div>
+             </div>
+           </div>
+
+           <!-- Timeline & Lists -->
+           <div class="grid-2" style="margin-top:2rem;">
+             <!-- Mentor Remarks Timeline -->
+             <div class="data-container">
+               <div class="data-header" style="display:flex; justify-content:space-between; align-items:center;">
+                  <h2>Mentor Remarks Timeline</h2>
+                  <button class="action-btn" style="background:var(--secondary);" onclick="addRemarksFromProfile()">+ Add Remark</button>
+               </div>
+               <div style="padding:1.5rem;" id="sprof-timeline">
+                  <!-- Timeline items -->
+               </div>
+             </div>
+
+             <!-- Documents & Tasks -->
+             <div style="display:flex; flex-direction:column; gap:2rem;">
+               <div class="data-container" style="margin-bottom:0;">
+                 <div class="data-header"><h2>Assigned Tasks</h2></div>
+                 <div class="table-wrapper">
+                    <table>
+                      <thead><tr><th>Title</th><th>Status</th></tr></thead>
+                      <tbody id="sprof-tasks-table"></tbody>
+                    </table>
+                 </div>
+               </div>
+               <div class="data-container" style="margin-bottom:0;">
+                 <div class="data-header"><h2>Uploaded Documents</h2></div>
+                 <div class="table-wrapper">
+                    <table>
+                      <thead><tr><th>Document</th><th>Uploaded By</th></tr></thead>
+                      <tbody id="sprof-docs-table"></tbody>
+                    </table>
+                 </div>
+               </div>
+             </div>
+           </div>
+        </div>
+
+        <!-- View: Attendance (Mentor Level) -->
+        <div id="view-attendance" class="view-section">
+           <div class="data-container">
+              <div class="data-header"><h2>Students Attendance Tracking</h2></div>
+              <div class="table-wrapper">
+                <table>
+                  <thead><tr><th>Reg No</th><th>Name</th><th>Overall Attendance</th><th>Risk Status</th></tr></thead>
+                  <tbody id="mentor-attendance-table">
+                     <!-- Populated by JS -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+        </div>
+
+        <!-- View: Calendar -->
+        <div id="view-calendar" class="view-section">
+          <div class="calendar-container">
+            <div class="calendar-header">
+              <button class="action-btn" style="background:var(--text-muted);">&lt; Prev</button>
+              <h2 id="mentor-calendar-month-year">April 2026</h2>
+              <button class="action-btn" style="background:var(--text-muted);">Next &gt;</button>
+            </div>
+            <div class="calendar-grid" style="grid-template-rows: auto auto;">
+              <div class="calendar-day-header">Sun</div><div class="calendar-day-header">Mon</div><div class="calendar-day-header">Tue</div><div class="calendar-day-header">Wed</div><div class="calendar-day-header">Thu</div><div class="calendar-day-header">Fri</div><div class="calendar-day-header">Sat</div>
+            </div>
+            <div class="calendar-grid" id="mentor-calendar-days">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
+        </div>
+
+        <!-- View: Messages -->
+        <div id="view-messages" class="view-section">
+          <div class="chat-container">
+             <div class="chat-sidebar" style="width:300px;">
+                <div style="padding:1rem; background:var(--surface); border-bottom:1px solid var(--border);"><strong>My Assigned Students</strong></div>
+                <div class="chat-list" id="mentor-chat-list">
+                  <div class="chat-contact active">
+                     <div class="avatar" style="width:30px; height:30px; font-size:0.8rem; background:var(--secondary)">S</div>
+                     <span style="font-weight:500;">Monika S</span>
+                  </div>
+                  <div class="chat-contact">
+                     <div class="avatar" style="width:30px; height:30px; font-size:0.8rem;">J</div>
+                     <span style="font-weight:500;">John Doe</span>
+                  </div>
+                </div>
+             </div>
+             <div class="chat-window">
+               <div style="padding:1rem; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:0.5rem; background:var(--surface);">
+                  <div class="avatar" style="width:30px; height:30px; font-size:0.8rem; background:var(--secondary)">S</div> <strong>Monika S</strong>
+               </div>
+               <div class="chat-history" id="mentor-chat-messages-area">
+                  <div class="chat-bubble sent">Hello! Please update your weekly project report.</div>
+                  <div class="chat-bubble received">Sure, I am working on it. I will upload it by EOD.</div>
+               </div>
+               <div class="chat-input-area">
+                 <input type="text" class="form-control" id="mentor-chat-input" placeholder="Type a message to Monika...">
+                 <button class="btn-primary" style="width:auto; padding:0.5rem 1.5rem;">Send</button>
+               </div>
+             </div>
+          </div>
+        </div>
+
+        <!-- View: Reports -->
+        <div id="view-reports" class="view-section">
+           <div class="grid-2">
+             <div class="data-container">
+               <div class="data-header"><h2>Generate Export</h2></div>
+               <div style="padding: 1.5rem;">
+                 <div class="form-group">
+                   <label>Report Type</label>
+                   <select class="form-control">
+                     <option>Full Class Academic Progress</option>
+                     <option>Attendance Deficit Report</option>
+                     <option>Tasks Completion Rates</option>
+                   </select>
+                 </div>
+                 <div class="form-group">
+                   <label>Export Format</label>
+                   <select class="form-control">
+                     <option>PDF Document</option>
+                     <option>CSV / Excel</option>
+                   </select>
+                 </div>
+                 <button class="btn-primary" onclick="alert('Generating report export...')">Download Report</button>
+               </div>
+             </div>
+             <div class="data-container">
+               <div class="data-header"><h2>Recent Reports</h2></div>
+               <div class="table-wrapper">
+                 <table>
+                   <thead><tr><th>Report Title</th><th>Generated On</th></tr></thead>
+                   <tbody>
+                     <tr><td>Mid-Term Academic Report</td><td>Apr 1, 2026</td></tr>
+                     <tr><td>March Attendance Deficit</td><td>Apr 2, 2026</td></tr>
+                   </tbody>
+                 </table>
+               </div>
+             </div>
+           </div>
+        </div>
+
+        <!-- View: Settings -->
+        <div id="view-settings" class="view-section">
+           <div class="grid-2">
+             <div class="data-container">
+                <div class="data-header"><h2>Account Settings</h2></div>
+                <div class="settings-section">
+                  <h3>Change Password</h3>
+                  <div class="form-group">
+                    <label>Current Password</label>
+                    <input type="password" class="form-control" placeholder="••••••••">
+                  </div>
+                  <div class="form-group">
+                    <label>New Password</label>
+                    <input type="password" class="form-control" placeholder="••••••••">
+                  </div>
+                  <button class="btn-primary" style="width:auto;">Update Password</button>
+                </div>
+                <div class="settings-section">
+                  <h3>Preferences</h3>
+                  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                    <span>Email Risk Alert Notifications</span>
+                    <label class="switch">
+                      <input type="checkbox" checked>
+                      <span class="slider"></span>
+                    </label>
+                  </div>
+                  <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span>Dark Mode Auto-Switch</span>
+                    <label class="switch">
+                      <input type="checkbox">
+                      <span class="slider"></span>
+                    </label>
+                    </label>
+                  </div>
+                </div>
+             </div>
+           </div>
+        </div>
+
+        <!-- View: Leaves -->
+        <div id="view-leaves" class="view-section">
+           <div class="data-container">
+              <div class="data-header"><h2>Pending Leave Requests</h2></div>
+              <div class="table-wrapper">
+                <table>
+                  <thead><tr><th>Student</th><th>Dates</th><th>Reason</th><th>Status</th><th>Action</th></tr></thead>
+                  <tbody id="mentor-leaves-table">
+                     <!-- Populated by JS -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+        </div>
+
+        <!-- View: Parent Communication -->
+        <div id="view-parentcomm" class="view-section">
+           <div class="grid-2">
+             <div class="data-container">
+               <div class="data-header"><h2>Draft Email to Parent</h2></div>
+               <div style="padding: 1.5rem;">
+                 <div class="form-group">
+                   <label>Select Student</label>
+                   <select id="parent-comm-student" class="form-control" onchange="updateParentCommForm()"></select>
+                 </div>
+                 <div class="form-group">
+                   <label>Parent Email (Derived)</label>
+                   <input type="email" id="parent-comm-email" class="form-control" disabled>
+                 </div>
+                 <div class="form-group">
+                   <label>Subject</label>
+                   <input type="text" id="parent-comm-subject" class="form-control" placeholder="e.g. Academic Update for April">
+                 </div>
+                 <div class="form-group">
+                   <label>Message</label>
+                   <textarea id="parent-comm-message" class="form-control" rows="5" placeholder="Dear Parent, ..."></textarea>
+                 </div>
+                 <button class="btn-primary" onclick="sendParentEmail()">Send Email via System</button>
+               </div>
+             </div>
+
+             <div class="data-container">
+               <div class="data-header"><h2>Communication History</h2></div>
+               <div class="table-wrapper">
+                 <table>
+                   <thead><tr><th>Student</th><th>Subject</th><th>Sent Date</th></tr></thead>
+                   <tbody id="parent-comm-history">
+                     <!-- Populated via JS -->
+                   </tbody>
+                 </table>
+               </div>
+             </div>
+           </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- Removed studentModal -->
+
+  <script src="app.js"></script>
+  <script>
+    let dbs = null;
+    let currentUser = null;
+    let myStudentsGlobal = [];
+
+    document.addEventListener('DOMContentLoaded', () => {
+      currentUser = checkAuth('Mentor');
+      if(!currentUser) return;
+      
+      dbs = getDB();
+
+      // Ensure Documents collection exists on patch
+      if(!dbs.Documents) { dbs.Documents = []; setDB(dbs); }
+
+      loadOverview();
+      loadTasks();
+      loadMeetings();
+      loadMessages();
+      loadAnalytics();
+      loadDocuments();
+      loadLeavesData();
+      loadParentCommHistory();
+      loadRemedialTracker();
+    });
+
+    function switchView(viewId) {
+      document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+      
+      document.getElementById('view-' + viewId).classList.add('active');
+      event.currentTarget.classList.add('active');
+      
+      const titles = {
+        'overview': 'Mentor Overview',
+        'attendance': 'Attendance Tracking',
+        'leaves': 'Leave Approvals',
+        'tasks': 'Task Management',
+        'calendar': 'Calendar Scheduler',
+        'meetings': 'Meeting Scheduler',
+        'analytics': 'Performance Analytics',
+        'documents': 'Documents & Resources',
+        'messages': 'Interpersonal Messages',
+        'parentcomm': 'Parent Communication',
+        'notifications': 'Notifications',
+        'reports': 'Reports & Exports',
+        'settings': 'Account Settings',
+        'student-profile': 'Student Profile'
+      };
+      document.getElementById('page-title').textContent = titles[viewId];
+    }
+
+    function loadOverview() {
+      myStudentsGlobal = dbs.Students.filter(s => s.mentor_id === currentUser.id);
+      document.getElementById('stat-students').textContent = myStudentsGlobal.length;
+      
+      let aggAttend = 0;
+      let cnt = 0;
+      myStudentsGlobal.forEach(stu => {
+        const atrec = dbs.Attendance.find(a => a.student_id === stu.id);
+        if(atrec) { aggAttend += atrec.percentage; cnt++; }
+      });
+      document.getElementById('stat-attendance').textContent = cnt > 0 ? (aggAttend/cnt).toFixed(1) + '%' : 'N/A';
+
+      renderStudentsTable(myStudentsGlobal);
+
+      // Populate selects
+      const selectHTML = myStudentsGlobal.map(stu => `<option value="${stu.id}">${stu.name} (${stu.reg_no})</option>`).join('');
+      document.getElementById('task-student').innerHTML = selectHTML;
+      document.getElementById('meeting-student').innerHTML = selectHTML;
+      const pcStu = document.getElementById('parent-comm-student');
+      if(pcStu) {
+         pcStu.innerHTML = `<option value="">-- Select Student --</option>` + selectHTML;
+      }
+
+      const announceSelect = document.getElementById('announcement-student');
+      if(announceSelect) {
+         announceSelect.innerHTML = `<option value="ALL">All Assigned Students</option>` + selectHTML;
+      }
+
+      const docSelect = document.getElementById('doc-student');
+      if(docSelect) {
+         docSelect.innerHTML = `<option value="ALL">All Assigned Students</option>` + selectHTML;
+      }
+
+      // Predictive Risk Detection Logic
+      const atRiskStudents = myStudentsGlobal.filter(s => {
+        let cgpa = parseFloat(s.cgpa);
+        return isNaN(cgpa) ? false : cgpa < 7.0; 
+      });
+      const riskBanner = document.getElementById('risk-alert-banner');
+      if(atRiskStudents.length > 0) {
+        riskBanner.style.display = 'block';
+        document.getElementById('risk-alert-list').innerHTML = atRiskStudents.map(s => `<li style="margin-bottom:0.25rem;">${s.name} (${s.reg_no}) — Current CGPA: ${s.cgpa}</li>`).join('');
+      } else {
+        riskBanner.style.display = 'none';
+      }
+    }
+
+    function renderStudentsTable(students) {
+      const tbody = document.getElementById('students-table-body');
+      tbody.innerHTML = students.map(stu => `
+        <tr>
+          <td><strong>${stu.reg_no}</strong></td>
+          <td>${stu.name}</td>
+          <td>${stu.dept}</td>
+          <td>${stu.cgpa || '-'}</td>
+          <td>${stu.remarks ? `"${stu.remarks}"` : '-'}</td>
+          <td>
+             <div style="display:flex; gap:0.5rem;">
+               <button class="action-btn" style="background:var(--primary); padding:0.25rem 0.5rem;" onclick="viewProfile('${stu.id}')">Profile</button>
+               <button class="action-btn" style="background:var(--secondary); padding:0.25rem 0.5rem;" onclick="addRemarks('${stu.id}')">Remark</button>
+             </div>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    let currentProfileStudentId = null;
+
+    function viewProfile(studentId) {
+      currentProfileStudentId = studentId;
+      const stu = dbs.Students.find(s => s.id === studentId);
+      if(!stu) return;
+
+      switchView('student-profile');
+      
+      document.getElementById('sprof-initial').textContent = stu.name.charAt(0);
+      document.getElementById('sprof-name').textContent = stu.name;
+      const userObj = dbs.Users.find(u => u.id === studentId) || {email: 'student@edu.in'};
+      document.getElementById('sprof-email').textContent = userObj.email;
+      document.getElementById('sprof-regno').textContent = stu.reg_no;
+      document.getElementById('sprof-dept').textContent = stu.dept;
+      document.getElementById('sprof-year').textContent = stu.year || '3';
+      document.getElementById('sprof-skills').textContent = stu.skills || '-';
+      
+      const stuFee = (dbs.Fees || []).find(f => f.student_id === studentId);
+      if(stuFee) {
+         if(stuFee.due > 0) {
+            document.getElementById('sprof-fees').innerHTML = `<span style="color:var(--danger); font-weight:bold;">₹${stuFee.due.toLocaleString()} Due</span>`;
+         } else {
+            document.getElementById('sprof-fees').innerHTML = `<span style="color:var(--success); font-weight:bold;">Fully Paid</span>`;
+         }
+      } else {
+         document.getElementById('sprof-fees').textContent = 'N/A';
+      }
+      
+      let cgpa = parseFloat(stu.cgpa) || 0;
+      document.getElementById('sprof-cgpa').textContent = stu.cgpa || '-';
+      
+      const riskBadge = document.getElementById('profile-risk-badge');
+      if (cgpa >= 8.5) {
+         riskBadge.textContent = 'Status: High Performer';
+         riskBadge.className = 'badge badge-success';
+      } else if (cgpa >= 7.0) {
+         riskBadge.textContent = 'Status: Average';
+         riskBadge.className = 'badge badge-warning';
+      } else {
+         riskBadge.textContent = 'Status: At Risk';
+         riskBadge.className = 'badge badge-danger';
+      }
+
+      const at = dbs.Attendance.find(a => a.student_id === studentId);
+      if(at) {
+        document.getElementById('sprof-attendance').textContent = at.percentage + '%';
+        setTimeout(() => {
+          document.getElementById('sprof-attendance-chart').style.background = `conic-gradient(var(--success) ${at.percentage}%, var(--border) 0)`;
+        }, 100);
+      } else {
+        document.getElementById('sprof-attendance').textContent = '0%';
+        document.getElementById('sprof-attendance-chart').style.background = `conic-gradient(var(--success) 0%, var(--border) 0)`;
+      }
+
+      // Progress Tracker (Mock derived from year/cgpa)
+      let progressPct = (parseInt(stu.year || '3') / 4) * 100;
+      document.getElementById('sprof-progress-text').textContent = progressPct + '%';
+      setTimeout(() => { document.getElementById('sprof-progress-bar').style.width = progressPct + '%'; }, 100);
+
+      // Marks
+      const stuMarks = dbs.Marks.filter(m => m.student_id === studentId);
+      const marksCont = document.getElementById('sprof-marks-list');
+      if(stuMarks.length > 0) {
+        marksCont.innerHTML = stuMarks.map(m => `
+          <div style="display:flex; justify-content:space-between; padding:0.25rem 0; border-bottom:1px dashed var(--border);">
+             <span>${m.subject}</span><strong style="color:var(--primary);">${m.mark}/100</strong>
+          </div>`).join('');
+      } else {
+        marksCont.innerHTML = '<p>No marks recorded.</p>';
+      }
+
+      // Skills badges
+      const skillsArr = (stu.skills || '').split(',').filter(x=>x.trim());
+      if(skillsArr.length > 0) {
+        document.getElementById('sprof-skills-badges').innerHTML = skillsArr.map(s => 
+          `<span class="badge badge-primary" style="margin-right:0.25rem; display:inline-block; margin-bottom:0.25rem;">${s.trim()}</span>`
+        ).join('');
+      } else {
+        document.getElementById('sprof-skills-badges').innerHTML = '<span style="color:var(--text-muted); font-size:0.875rem;">No skills listed.</span>';
+      }
+
+      // Timeline Remarks
+      const stuRemarks = (dbs.RemarksTimeline || []).filter(r => r.student_id === studentId).sort((a,b) => new Date(b.date) - new Date(a.date));
+      const timelineCont = document.getElementById('sprof-timeline');
+      if(stuRemarks.length > 0) {
+         timelineCont.innerHTML = stuRemarks.map(rm => `
+           <div style="border-left:2px solid var(--primary); padding-left:1rem; margin-bottom:1rem; position:relative;">
+             <div style="position:absolute; left:-6px; top:0; width:10px; height:10px; border-radius:50%; background:var(--primary);"></div>
+             <p style="font-size:0.875rem; color:var(--text-main); margin-bottom:0.25rem;">${rm.text}</p>
+             <span style="font-size:0.75rem; color:var(--text-muted);">${new Date(rm.date).toLocaleString()}</span>
+           </div>
+         `).join('');
+      } else {
+         if(stu.remarks) {
+            timelineCont.innerHTML = `
+            <div style="border-left:2px solid var(--primary); padding-left:1rem; margin-bottom:1rem; position:relative;">
+              <div style="position:absolute; left:-6px; top:0; width:10px; height:10px; border-radius:50%; background:var(--primary);"></div>
+              <p style="font-size:0.875rem; color:var(--text-main); margin-bottom:0.25rem;">${stu.remarks}</p>
+              <span style="font-size:0.75rem; color:var(--text-muted);">Legacy Remark</span>
+            </div>`;
+         } else {
+            timelineCont.innerHTML = '<p style="font-size:0.875rem; color:var(--text-muted);">No remarks yet.</p>';
+         }
+      }
+
+      // Tasks
+      const stuTasks = dbs.Tasks.filter(t => t.student_id === studentId);
+      document.getElementById('sprof-tasks-table').innerHTML = stuTasks.map(t => 
+        `<tr><td>${t.title}</td><td><span class="badge ${t.status==='Completed'?'badge-success':'badge-warning'}">${t.status}</span></td></tr>`
+      ).join('') || '<tr><td colspan="2">No tasks assigned</td></tr>';
+
+      // Documents
+      const stuDocs = (dbs.Documents || []).filter(d => d.student_id === studentId || d.student_id === 'ALL');
+      document.getElementById('sprof-docs-table').innerHTML = stuDocs.map(d => 
+        `<tr><td>${d.filename}</td><td>${d.uploadedBy || 'Mentor'}</td></tr>`
+      ).join('') || '<tr><td colspan="2">No documents shared</td></tr>';
+    }
+
+    function addRemarksFromProfile() {
+      if(!currentProfileStudentId) return;
+      const remark = prompt("Enter new remark for this student:");
+      if(remark && remark.trim() !== '') {
+         if(!dbs.RemarksTimeline) dbs.RemarksTimeline = [];
+         dbs.RemarksTimeline.push({
+             id: 'rem' + Date.now(),
+             student_id: currentProfileStudentId,
+             mentor_id: currentUser.id,
+             text: remark,
+             date: new Date().toISOString()
+         });
+         const sIdx = dbs.Students.findIndex(s => s.id === currentProfileStudentId);
+         if(sIdx > -1) dbs.Students[sIdx].remarks = remark;
+         
+         setDB(dbs);
+         viewProfile(currentProfileStudentId);
+      }
+    }
+
+    function filterStudents() {
+      const query = document.getElementById('student-search').value.toLowerCase();
+      const filtered = myStudentsGlobal.filter(s => 
+        s.name.toLowerCase().includes(query) || s.reg_no.toLowerCase().includes(query)
+      );
+      renderStudentsTable(filtered);
+    }
+
+    function addRemarks(studentId) {
+      const remark = prompt("Enter new remark for this student:");
+      if(remark !== null && remark.trim() !== '') {
+        const sIdx = dbs.Students.findIndex(s => s.id === studentId);
+        if(sIdx > -1) {
+          dbs.Students[sIdx].remarks = remark;
+          if(!dbs.RemarksTimeline) dbs.RemarksTimeline = [];
+          dbs.RemarksTimeline.push({
+             id: 'rem' + Date.now(),
+             student_id: studentId,
+             mentor_id: currentUser.id,
+             text: remark,
+             date: new Date().toISOString()
+          });
+          setDB(dbs);
+          loadOverview();
+        }
+      }
+    }
+
+    function emailParent() {
+      if(!currentProfileStudentId) return;
+      const stu = dbs.Students.find(s => s.id === currentProfileStudentId);
+      if(!stu) return;
+
+      // Mocking a parent email based on student reg no.
+      const parentEmail = `parent_${stu.reg_no.toLowerCase()}@edu.in`;
+      const subject = encodeURIComponent(`Academic Update regarding your ward ${stu.name} from Mentor`);
+      let bodyText = `Dear Parent/Guardian,\n\nI am reaching out regarding the academic progress of ${stu.name} (Reg No: ${stu.reg_no}).\n\nCurrent CGPA: ${stu.cgpa}\n\nPlease review their progress. Feel free to reply to schedule a meeting if necessary.\n\nBest Regards,\n${currentUser.name} (Mentor)`;
+      const body = encodeURIComponent(bodyText);
+
+      // Trigger default mail client
+      window.location.href = `mailto:${parentEmail}?subject=${subject}&body=${body}`;
+    }
+
+    function loadTasks() {
+      const studentIds = myStudentsGlobal.map(s => s.id);
+      const myTasks = dbs.Tasks.filter(t => studentIds.includes(t.student_id));
+      
+      const tbody = document.getElementById('tasks-table-body');
+      tbody.innerHTML = myTasks.map(task => {
+        const stu = dbs.Students.find(s => s.id === task.student_id);
+        let bClass = task.status === 'Completed' ? 'badge-success' : 'badge-warning';
+        return `<tr>
+          <td>${task.title}</td>
+          <td>${stu ? stu.name : 'Unknown'}</td>
+          <td>${task.deadline}</td>
+          <td><span class="badge ${bClass}">${task.status}</span></td>
+        </tr>`;
+      }).join('');
+    }
+
+    function assignTask() {
+      const sId = document.getElementById('task-student').value;
+      const title = document.getElementById('task-title').value;
+      const deadline = document.getElementById('task-deadline').value;
+
+      if(!title || !deadline) {
+        alert("Please fill all task fields."); return;
+      }
+
+      dbs.Tasks.push({
+        id: 't' + Date.now(),
+        title: title,
+        description: 'Mentor Assigned Task',
+        deadline: deadline,
+        student_id: sId,
+        status: 'Pending'
+      });
+      setDB(dbs);
+      loadTasks();
+      alert("Task assigned successfully!");
+    }
+
+    function loadMeetings() {
+      const myMeetings = dbs.Meetings.filter(m => m.mentor_id === currentUser.id);
+      
+      const tbody = document.getElementById('meetings-table-body');
+      tbody.innerHTML = myMeetings.map(mtg => {
+        const stu = dbs.Students.find(s => s.id === mtg.student_id);
+        return `<tr>
+          <td>${new Date(mtg.date).toLocaleString()}</td>
+          <td>${stu ? stu.name : 'Unknown'}</td>
+          <td>${mtg.notes}</td>
+        </tr>`;
+      }).join('');
+    }
+
+    function scheduleMeeting() {
+      const sId = document.getElementById('meeting-student').value;
+      const date = document.getElementById('meeting-date').value;
+      const notes = document.getElementById('meeting-notes').value;
+
+      if(!sId || !date) { alert("Please fill date and time"); return; }
+
+      dbs.Meetings.push({
+        id: 'mtg' + Date.now(),
+        mentor_id: currentUser.id,
+        student_id: sId,
+        date: date,
+        notes: notes || 'Scheduled Sync'
+      });
+      setDB(dbs);
+      loadMeetings();
+      alert("Meeting Scheduled!");
+    }
+
+    function loadMessages() {
+      if(!currentUser) return;
+      const msgs = dbs.Messages.filter(m => m.receiver_id === currentUser.id);
+      const cont = document.getElementById('mentor-messages-container');
+      
+      if(msgs.length === 0) {
+        cont.innerHTML = `<p style="color:var(--text-muted);">No new notifications.</p>`;
+        return;
+      }
+
+      cont.innerHTML = msgs.map(msg => {
+        return `
+        <div style="background:var(--background); padding:1rem; border-radius:var(--radius-md); border-left:4px solid var(--primary); margin-bottom:1rem;">
+           <p>${msg.message}</p>
+           <span style="font-size:0.75rem; color:var(--text-muted);">${new Date(msg.timestamp).toLocaleString()}</span>
+        </div>`;
+      }).join('');
+    }
+
+    function sendAnnouncement() {
+      const sId = document.getElementById('announcement-student').value;
+      const msg = document.getElementById('announcement-msg').value.trim();
+
+      if(!msg) { alert("Please enter a message"); return; }
+      
+      let targets = sId === 'ALL' ? myStudentsGlobal.map(s => s.id) : [sId];
+
+      if(targets.length === 0) { alert("No students available."); return; }
+
+      targets.forEach(targetId => {
+        dbs.Messages.push({
+          id: 'msg' + Date.now() + Math.floor(Math.random()*1000),
+          sender_id: currentUser.id,
+          receiver_id: targetId,
+          message: msg,
+          timestamp: new Date().toISOString()
+        });
+      });
+      
+      setDB(dbs);
+      document.getElementById('announcement-msg').value = '';
+      alert("Announcement sent successfully!");
+    }
+
+    function loadDocuments() {
+      const myDocs = dbs.Documents.filter(d => d.mentor_id === currentUser.id);
+      const tbody = document.getElementById('documents-table-body');
+      tbody.innerHTML = myDocs.map(doc => {
+        let sharedWith = doc.student_id === 'ALL' ? 'All Students' : (dbs.Students.find(s => s.id === doc.student_id)?.name || 'Unknown');
+        return `<tr>
+          <td><strong>${doc.title}</strong><br><small style="color:var(--text-muted)">${doc.filename}</small></td>
+          <td>${sharedWith}</td>
+          <td><button class="action-btn" style="background:var(--success); padding:0.25rem 0.5rem;" onclick="alert('Downloading ${doc.filename}...')">⬇ Download</button></td>
+        </tr>`;
+      }).join('');
+    }
+
+    function uploadDocument() {
+      const sId = document.getElementById('doc-student').value;
+      const title = document.getElementById('doc-title').value.trim();
+      const fileInput = document.getElementById('doc-upload');
+
+      if(!title || !fileInput.files.length) { alert("Please provide a valid document title and select a file!"); return; }
+
+      const file = fileInput.files[0];
+      
+      dbs.Documents.push({
+        id: 'doc' + Date.now(),
+        mentor_id: currentUser.id,
+        student_id: sId,
+        title: title,
+        filename: file.name,
+        timestamp: new Date().toISOString()
+      });
+      
+      setDB(dbs);
+      loadDocuments();
+      document.getElementById('doc-title').value = '';
+      fileInput.value = '';
+      alert("Document verified and securely shared successfully!");
+    }
+
+    function loadAnalytics() {
+      const total = myStudentsGlobal.length;
+      const cont = document.getElementById('analytics-content');
+      if (total === 0) {
+        cont.innerHTML = `<p style="color:var(--text-muted)">No students assigned to compute analytics.</p>`;
+        return;
+      }
+      
+      let high = 0, avg = 0, risk = 0;
+      myStudentsGlobal.forEach(stu => {
+        let cgpa = parseFloat(stu.cgpa) || 0;
+        if(cgpa >= 8.5) high++;
+        else if(cgpa >= 7.0) avg++;
+        else risk++;
+      });
+
+      const highPct = Math.round((high/total)*100);
+      const avgPct = Math.round((avg/total)*100);
+      const riskPct = Math.round((risk/total)*100);
+
+      cont.innerHTML = `
+        <div style="margin-bottom: 2rem;">
+          <div style="display:flex; justify-content:space-between; margin-bottom:0.5rem; font-weight:500;">
+            <span>High Performers (CGPA >= 8.5) (${high})</span><span>${highPct}%</span>
+          </div>
+          <div style="background:var(--border); height:12px; border-radius:6px; overflow:hidden;">
+            <div style="background:var(--success); width:${highPct}%; height:100%; transition:width 1s ease-in-out;"></div>
+          </div>
+        </div>
+
+        <div style="margin-bottom: 2rem;">
+          <div style="display:flex; justify-content:space-between; margin-bottom:0.5rem; font-weight:500;">
+            <span>Average Performers (CGPA 7.0 - 8.4) (${avg})</span><span>${avgPct}%</span>
+          </div>
+          <div style="background:var(--border); height:12px; border-radius:6px; overflow:hidden;">
+            <div style="background:var(--warning); width:${avgPct}%; height:100%; transition:width 1s ease-in-out;"></div>
+          </div>
+        </div>
+
+        <div style="margin-bottom: 2rem;">
+          <div style="display:flex; justify-content:space-between; margin-bottom:0.5rem; font-weight:500;">
+            <span>At Risk (CGPA < 7.0) (${risk})</span><span>${riskPct}%</span>
+          </div>
+          <div style="background:var(--border); height:12px; border-radius:6px; overflow:hidden;">
+            <div style="background:var(--danger); width:${riskPct}%; height:100%; transition:width 1s ease-in-out;"></div>
+          </div>
+        </div>
+      `;
+    }
+
+    function loadLeavesData() {
+      if(!currentUser || !dbs.Leaves) return;
+      const leaves = dbs.Leaves.filter(lv => lv.mentor_id === currentUser.id);
+      const tbody = document.getElementById('mentor-leaves-table');
+      
+      tbody.innerHTML = leaves.map(lv => {
+        const student = dbs.Students.find(s => s.id === lv.student_id);
+        const name = student ? student.name : 'Unknown';
+        
+        let actionBtns = '';
+        if(lv.status === 'Pending') {
+          actionBtns = `
+            <button class="action-btn" style="background:var(--success); padding:0.25rem 0.5rem;" onclick="updateLeaveStatus('${lv.id}', 'Approved')">Approve</button>
+            <button class="action-btn" style="background:var(--danger); padding:0.25rem 0.5rem; margin-left:0.5rem;" onclick="updateLeaveStatus('${lv.id}', 'Rejected')">Reject</button>
+          `;
+        }
+        
+        let bClass = lv.status === 'Approved' ? 'badge-success' : (lv.status === 'Rejected' ? 'badge-danger' : 'badge-warning');
+        return `<tr>
+          <td><strong>${name}</strong></td>
+          <td><small>${lv.fromDate} to ${lv.toDate}</small></td>
+          <td>${lv.reason}</td>
+          <td><span class="badge ${bClass}">${lv.status}</span></td>
+          <td>${actionBtns}</td>
+        </tr>`;
+      }).join('');
+    }
+
+    function updateLeaveStatus(leaveId, status) {
+       const lvIdx = dbs.Leaves.findIndex(lv => lv.id === leaveId);
+       if(lvIdx > -1) {
+          dbs.Leaves[lvIdx].status = status;
+          setDB(dbs);
+          loadLeavesData();
+          alert(`Leave request marked as ${status}.`);
+       }
+    }
+
+    function updateParentCommForm() {
+      const sId = document.getElementById('parent-comm-student').value;
+      const emailField = document.getElementById('parent-comm-email');
+      if(!sId) {
+         emailField.value = '';
+         return;
+      }
+      const stu = dbs.Students.find(s => s.id === sId);
+      if(stu) {
+         // Auto derivations
+         emailField.value = `parent_${stu.reg_no.toLowerCase()}@edu.in`;
+      }
+    }
+
+    function sendParentEmail() {
+      const sId = document.getElementById('parent-comm-student').value;
+      const email = document.getElementById('parent-comm-email').value;
+      const subj = document.getElementById('parent-comm-subject').value;
+      const msg = document.getElementById('parent-comm-message').value;
+
+      if(!sId || !subj || !msg) {
+         alert("Please fill all fields before sending!");
+         return;
+      }
+
+      const stu = dbs.Students.find(s => s.id === sId);
+      if(!stu) return;
+
+      // Ensure history table exists in DB
+      if(!dbs.ParentMails) dbs.ParentMails = [];
+      
+      dbs.ParentMails.push({
+         id: 'pml' + Date.now(),
+         student_id: sId,
+         mentor_id: currentUser.id,
+         parent_email: email,
+         subject: subj,
+         message: msg,
+         date: new Date().toISOString()
+      });
+      setDB(dbs);
+
+      document.getElementById('parent-comm-subject').value = '';
+      document.getElementById('parent-comm-message').value = '';
+      
+      alert(`System has successfully dispatched Email to ${email}`);
+      loadParentCommHistory();
+    }
+
+    function loadParentCommHistory() {
+      if(!currentUser) return;
+      if(!dbs.ParentMails) {
+        dbs.ParentMails = []; setDB(dbs);
+      }
+      const myMails = dbs.ParentMails.filter(m => m.mentor_id === currentUser.id);
+      
+      const tbody = document.getElementById('parent-comm-history');
+      if(!tbody) return;
+      
+      tbody.innerHTML = myMails.reverse().map(m => {
+        const student = dbs.Students.find(s => s.id === m.student_id);
+        const name = student ? student.name : 'Unknown';
+        return `<tr>
+          <td><strong>${name}</strong></td>
+          <td>${m.subject}</td>
+          <td>${new Date(m.date).toLocaleString()}</td>
+        </tr>`;
+      }).join('');
+    }
+
+    function loadRemedialTracker() {
+      if(!currentUser || !dbs.Assessments) return;
+      const today = new Date().toISOString().split('T')[0];
+      
+      const studentsAtRisk = myStudentsGlobal.filter(s => parseFloat(s.cgpa) < 6.5);
+      const tests = dbs.Assessments.filter(a => a.mentor_id === currentUser.id && Object.values(studentsAtRisk).some(s => s.id === a.student_id));
+
+      const tbody = document.getElementById('remedial-tracker-body');
+      if(!tbody) return;
+
+      if(tests.length === 0) {
+         tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;">No automated tests active.</td></tr>`;
+         return;
+      }
+
+      tbody.innerHTML = tests.map(t => {
+         const student = dbs.Students.find(s => s.id === t.student_id);
+         let statBadge = t.status === 'Completed' ? 'badge-success' : 'badge-warning';
+         let scoreStr = t.score !== null ? `${t.score}/10` : 'Pending';
+         
+         return `<tr>
+            <td><strong>${student ? student.name : 'Unknown'}</strong></td>
+            <td>${t.date}</td>
+            <td><span class="badge ${statBadge}">${t.status}</span></td>
+            <td>${scoreStr}</td>
+         </tr>`;
+      }).join('');
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mentor Dashboard</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    /* Google Auth Overlay Styles */
+    .google-overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: #fff; z-index: 9999; display: none; overflow-y: auto;
+      font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      color: #202124;
+    }
+    .google-header {
+      border-bottom: 1px solid #e0e0e0; padding: 15px 24px;
+      display: flex; align-items: center; gap: 10px; font-size: 1.1rem;
+    }
+    .google-header img { width: 24px; }
+    .google-content {
+      max-width: 450px; margin: 40px auto; padding: 0 24px;
+    }
+    .google-title { font-size: 32px; font-weight: 400; margin-bottom: 8px; }
+    .google-subtitle { font-size: 16px; margin-bottom: 32px; }
+    .google-subtitle span { color: #1a73e8; font-weight: 500; }
+    .google-account-list { border: 1px solid #dadce0; border-radius: 8px; overflow: hidden; }
+    .google-account-item {
+      display: flex; align-items: center; padding: 14px 16px; border-bottom: 1px solid #dadce0;
+      cursor: pointer; transition: background 0.2s;
+    }
+    .google-account-item:hover { background: #f8f9fa; }
+    .google-account-item:last-child { border-bottom: none; }
+    .google-avatar {
+      width: 32px; height: 32px; border-radius: 50%; background: #8d6e63; color: white;
+      display: flex; align-items: center; justify-content: center; font-size: 14px; margin-right: 14px; font-weight: 500;
+    }
+    .google-account-info { flex-grow: 1; }
+    .google-account-name { font-weight: 500; font-size: 14px; margin-bottom: 2px; }
+    .google-account-email { color: #5f6368; font-size: 12px; }
+    .google-footer {
+      display: flex; justify-content: space-between; max-width: 450px; margin: 40px auto 20px;
+      padding: 0 24px; font-size: 12px; color: #757575;
+    }
+    .google-footer-links { display: flex; gap: 20px; }
+    .google-footer-links a { color: #757575; text-decoration: none; cursor: pointer; padding: 6px; border-radius: 4px; }
+    .google-footer-links a:hover { background: #f8f9fa; }
+  </style>
+</head>
+<body>
+  <button class="theme-toggle-btn" onclick="toggleTheme()" style="position:absolute; top:1.5rem; right:1.5rem; z-index:100;" title="Toggle Theme">🌙</button>
+  <div class="auth-wrapper">
+    <div class="auth-card">
+      <h1>Mentor Dashboard</h1>
+      <p style="color: var(--text-muted); margin-bottom: 1rem;">Select role and enter credentials</p>
+      
+      <div class="role-selector">
+        <button class="role-btn active" data-role="Student">Student</button>
+        <button class="role-btn" data-role="Mentor">Mentor</button>
+        <button class="role-btn" data-role="Admin">Admin</button>
+      </div>
+
+      <form id="login-form">
+        <div class="form-group">
+          <label for="email">Email or Username</label>
+          <input type="text" id="email" class="form-control" value="monika.ee23@bitsathy.ac.in" required>
+        </div>
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" class="form-control" value="student" required>
+        </div>
+        <button type="submit" class="btn-primary" id="login-btn">Login as Student</button>
+        <div id="google-login-section">
+          <div style="margin-top: 1rem; text-align: center; color: var(--text-muted); font-size: 0.9rem;">or</div>
+          <button type="button" class="btn-primary" style="margin-top: 1rem; background-color: white; color: #444; border: 1px solid #ddd; display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; cursor: pointer;" onclick="handleGoogleSignIn()">
+            <img src="https://img.icons8.com/color/48/000000/google-logo.png" style="width: 20px; height: 20px;" alt="G"> Sign in with Google
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Google Auth Overlay -->
+  <div class="google-overlay" id="googleOverlay">
+    <div class="google-header">
+      <img src="https://img.icons8.com/color/48/000000/google-logo.png" alt="Google">
+      <span>Sign in with Google</span>
+    </div>
+    <div class="google-content">
+      <div class="google-title">Choose an account</div>
+      <div class="google-subtitle">to continue to <span>BIT Single Sign On</span></div>
+      
+      <div class="google-account-list">
+        <div class="google-account-item" onclick="selectGoogleEmail('monika.ee23@bitsathy.ac.in')">
+          <div class="google-avatar" style="background:#8d6e63;">M</div>
+          <div class="google-account-info">
+            <div class="google-account-name">MONIKA S</div>
+            <div class="google-account-email">monika.ee23@bitsathy.ac.in</div>
+          </div>
+        </div>
+        <div class="google-account-item" onclick="selectGoogleEmail('dharsdhini.ee23@bitsathy.ac.in')">
+          <div class="google-avatar" style="background:#5c6bc0;">D</div>
+          <div class="google-account-info">
+            <div class="google-account-name">DHARSHINI M</div>
+            <div class="google-account-email">dharsdhini.ee23@bitsathy.ac.in</div>
+          </div>
+        </div>
+        <div class="google-account-item" onclick="selectGoogleEmail('monikakumutha88@gmail.com')">
+          <div class="google-avatar" style="background:#66bb6a;">D</div>
+          <div class="google-account-info">
+            <div class="google-account-name">Dr. CHINNADURRAI CL</div>
+            <div class="google-account-email">monikakumutha88@gmail.com</div>
+          </div>
+        </div>
+        <div class="google-account-item" onclick="selectGoogleEmail('moniikasekar@gmail.com')">
+          <div class="google-avatar" style="background:#ab47bc;">A</div>
+          <div class="google-account-info">
+            <div class="google-account-name">Admin User</div>
+            <div class="google-account-email">moniikasekar@gmail.com</div>
+          </div>
+        </div>
+        <div class="google-account-item" onclick="closeGoogleAndPrompt()">
+          <div class="google-avatar" style="background:transparent; color:#5f6368; border:1px solid #dadce0;">
+            <svg style="width:16px;height:16px" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>
+          </div>
+          <div class="google-account-info">
+            <div class="google-account-name" style="font-weight: 500;">Use another account</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="google-footer">
+      <div>English (United States) ▾</div>
+      <div class="google-footer-links">
+        <a>Help</a>
+        <a>Privacy</a>
+        <a>Terms</a>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+  <script>
+    window.currentRole = 'Student';
+    document.addEventListener('DOMContentLoaded', () => {
+      const roleBtns = document.querySelectorAll('.role-btn');
+      const loginBtn = document.getElementById('login-btn');
+      const loginForm = document.getElementById('login-form');
+      const emailInput = document.getElementById('email');
+
+      roleBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          roleBtns.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          window.currentRole = btn.dataset.role;
+          loginBtn.textContent = `Login as ${window.currentRole}`;
+          if(window.currentRole === 'Admin') {
+            emailInput.value = 'moniikasekar@gmail.com';
+            document.getElementById('password').value = 'admin';
+          }
+          if(window.currentRole === 'Mentor') {
+            emailInput.value = 'monikakumutha88@gmail.com';
+            document.getElementById('password').value = 'mentor';
+          }
+          if(window.currentRole === 'Student') {
+            emailInput.value = 'monika.ee23@bitsathy.ac.in';
+            document.getElementById('password').value = 'student';
+          }
+        });
+      });
+
+      loginForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        let email = emailInput.value.trim();
+        
+        const password = document.getElementById('password').value;
+        const success = login(email, password, window.currentRole);
+        if(!success) {
+          alert('Invalid credentials or role mismatch.');
+        }
+      });
+    });
+
+    function handleGoogleSignIn() {
+      document.getElementById('googleOverlay').style.display = 'block';
+    }
+
+    function selectGoogleEmail(email) {
+      const db = getDB();
+      const user = db.Users.find(u => u.email.toLowerCase() === email.toLowerCase());
+      if (!user) {
+          alert('Invalid mail! Account not found.');
+          return;
+      }
+      if (user.role !== window.currentRole) {
+          alert('Invalid mail! This email belongs to a ' + user.role + ' but you selected ' + window.currentRole + ' role.');
+          return;
+      }
+      
+      // Matched successfully!
+      const success = googleLogin(email);
+      if (!success) {
+        alert('An unexpected error occurred during login.');
+      }
+    }
+
+    function closeGoogleAndPrompt() {
+      document.getElementById('googleOverlay').style.display = 'none';
+      const email = prompt("Enter your alternative Google email address:");
+      if (email && email.trim() !== '') {
+        selectGoogleEmail(email.trim());
+      }
+    }
+  </script>
+</body>
+</html>

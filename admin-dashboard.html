@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mentor Dashboard</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .view-section { display: none; }
+    .view-section.active { display: block; animation: fadeIn 0.3s ease-in-out; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  </style>
+</head>
+<body>
+  <div class="dashboard-layout">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <h2>🛡️ Admin Portal</h2>
+      </div>
+      <div class="nav-links">
+        <a href="#" class="nav-item active" onclick="switchView('overview')"><span>System Overview</span></a>
+        <a href="#" class="nav-item" onclick="switchView('mentors')"><span>Manage Mentors</span></a>
+        <a href="#" class="nav-item" onclick="switchView('students')"><span>Manage Students</span></a>
+        <a href="#" class="nav-item" onclick="switchView('performance')"><span>Monitor Performance</span></a>
+        <a href="#" class="nav-item" onclick="switchView('leaderboard')"><span>Overall Leaderboard</span></a>
+        <a href="#" class="nav-item" onclick="switchView('reports')"><span>Reports & Exports</span></a>
+        <a href="#" class="nav-item" onclick="switchView('announcements')"><span>Announcements</span></a>
+        <a href="#" class="nav-item" onclick="switchView('settings')"><span>System Settings</span></a>
+      </div>
+      <div class="user-profile">
+        <div class="avatar" style="background:var(--text-main)">A</div>
+        <div>
+          <strong class="sidebar-username" style="display:block; font-size:0.875rem;">Admin</strong>
+          <a href="#" class="logout-btn" style="font-size:0.75rem; color:var(--danger);">Logout</a>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <div class="topbar">
+        <h1 class="page-title" id="page-title">System Overview</h1>
+        <div style="display:flex; align-items:center; gap:1rem;">
+          <button class="theme-toggle-btn" onclick="toggleTheme()" title="Toggle Theme">🌙</button>
+        </div>
+      </div>
+
+      <div class="content-area">
+        
+        <!-- View: Overview -->
+        <div id="view-overview" class="view-section active">
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-icon" style="background: rgba(79, 70, 229, 0.1); color: var(--primary);">👨‍🏫</div>
+              <div class="stat-info"><h3>Total Mentors</h3><p id="stat-mentors">0</p></div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon" style="background: rgba(14, 165, 233, 0.1); color: var(--secondary);">🎓</div>
+              <div class="stat-info"><h3>Total Students</h3><p id="stat-students">0</p></div>
+            </div>
+          </div>
+          
+          <div class="data-container" style="padding: 2rem;">
+            <h2>Admin Management System</h2>
+            <p style="color:var(--text-muted); margin-top:1rem;">Welcome to the centralized administration platform. Use the sidebar to manage Mentors and Students within the system. Analytics and Announcements modules are fully active.</p>
+          </div>
+        </div>
+
+        <!-- View: Mentors -->
+        <div id="view-mentors" class="view-section">
+           <div class="grid-2">
+             <div class="data-container">
+               <div class="data-header"><h2 id="m-form-title">Add New Mentor</h2></div>
+               <div style="padding: 1.5rem;">
+                 <input type="hidden" id="m-edit-id" value="">
+                 <div class="form-group"><label>Name</label><input type="text" id="m-name" class="form-control"></div>
+                 <div class="form-group"><label>Email</label><input type="email" id="m-email" class="form-control"></div>
+                 <div class="form-group"><label>Department</label><select id="m-dept" class="form-control"></select></div>
+                 <button class="btn-primary" id="m-btn-save" onclick="saveMentor()">Add Mentor</button>
+                 <button class="btn-secondary" style="margin-top:0.5rem; display:none;" id="m-btn-cancel" onclick="resetMentorForm()">Cancel Edit</button>
+               </div>
+             </div>
+             
+             <div class="data-container">
+               <div class="data-header"><h2>Existing Mentors</h2></div>
+               <div class="table-wrapper">
+                 <table>
+                   <thead><tr><th>Name</th><th>Department</th><th>Action</th></tr></thead>
+                   <tbody id="admin-mentors-table"></tbody>
+                 </table>
+               </div>
+             </div>
+           </div>
+        </div>
+
+        <!-- View: Students -->
+        <div id="view-students" class="view-section">
+           <div class="grid-2">
+             <div class="data-container">
+               <div class="data-header"><h2 id="s-form-title">Add/Assign Student</h2></div>
+               <div style="padding: 1.5rem;">
+                 <input type="hidden" id="s-edit-id" value="">
+                 <div class="form-group"><label>Student Name</label><input type="text" id="s-name" class="form-control"></div>
+                 <div class="form-group"><label>Register No</label><input type="text" id="s-regno" class="form-control"></div>
+                 <div class="form-group"><label>Email</label><input type="email" id="s-email" class="form-control"></div>
+                 <div class="form-group">
+                   <div style="display:flex; gap:1rem;">
+                     <div style="flex:1;"><label>Department</label><select id="s-dept" class="form-control"></select></div>
+                     <div style="flex:1;"><label>Year</label><select id="s-year" class="form-control"></select></div>
+                   </div>
+                 </div>
+                 <div class="form-group">
+                   <label>Assign Mentor</label>
+                   <select id="s-mentor" class="form-control"></select>
+                 </div>
+                 <button class="btn-primary" id="s-btn-save" onclick="saveStudent()">Add & Assign Student</button>
+                 <button class="btn-secondary" style="margin-top:0.5rem; display:none;" id="s-btn-cancel" onclick="resetStudentForm()">Cancel Edit</button>
+               </div>
+             </div>
+
+             <div style="display:flex; flex-direction:column; gap:2rem;">
+               <div class="data-container">
+                 <div class="data-header"><h2>Bulk Upload Students</h2></div>
+                 <div style="padding: 1.5rem;">
+                   <p style="color:var(--text-muted); font-size:0.875rem; margin-bottom:1rem;">Upload a CSV file containing: <strong>Name, RegNo, Email, Department, Year</strong></p>
+                   <div class="form-group">
+                     <label>Default Mentor Assignment (Optional)</label>
+                     <select id="bulk-mentor" class="form-control"><option value="">-- No Mentor --</option></select>
+                   </div>
+                   <input type="file" id="csv-upload" accept=".csv" class="form-control" style="margin-bottom:1rem;">
+                   <button class="btn-secondary" onclick="uploadCSV()" style="padding:0.75rem 1rem; border-radius:var(--radius-md); border:1px solid var(--border); cursor:pointer;">Upload CSV & Import</button>
+                 </div>
+               </div>
+               
+               <div class="data-container">
+                 <div class="data-header"><h2>Existing Students</h2></div>
+                 <div class="table-wrapper">
+                   <table>
+                     <thead><tr><th>Reg No</th><th>Name</th><th>Mentor</th><th>Action</th></tr></thead>
+                     <tbody id="admin-students-table"></tbody>
+                   </table>
+                 </div>
+               </div>
+             </div>
+
+           </div>
+        </div>
+
+        <!-- View: Performance -->
+        <div id="view-performance" class="view-section">
+          <div class="grid-2">
+             <div class="data-container">
+               <div class="data-header"><h2>Overall System Analytics</h2></div>
+               <div style="padding: 1.5rem;" id="admin-performance-stats">
+                 <!-- JS populates -->
+               </div>
+             </div>
+             
+             <div class="data-container">
+               <div class="data-header"><h2>Financial Oversight</h2></div>
+               <div style="padding: 1.5rem;" id="admin-financial-stats">
+                 <!-- JS populates -->
+               </div>
+             </div>
+          </div>
+        </div>
+
+        <!-- View: Leaderboard -->
+        <div id="view-leaderboard" class="view-section">
+           <div class="data-container">
+             <div class="data-header"><h2 style="color:var(--primary)">🏆 Top Performers Leaderboard</h2></div>
+             <div class="table-wrapper">
+               <table class="leaderboard-table">
+                 <thead><tr><th>Rank</th><th>Student</th><th>Score (CGPA)</th><th>Attendance</th></tr></thead>
+                 <tbody id="leaderboard-table"></tbody>
+               </table>
+             </div>
+           </div>
+        </div>
+
+        <!-- View: Reports -->
+        <div id="view-reports" class="view-section">
+           <div class="grid-2">
+             <div class="data-container">
+               <div class="data-header"><h2>Generate System Report</h2></div>
+               <div style="padding: 1.5rem;">
+                 <div class="form-group">
+                   <label>Report Target</label>
+                   <select class="form-control">
+                     <option>Global Academic Standing</option>
+                     <option>Mentorship Engagement</option>
+                     <option>Departmental Comparison</option>
+                   </select>
+                 </div>
+                 <div class="form-group">
+                   <label>Export Format</label>
+                   <select class="form-control">
+                     <option>PDF Summary</option>
+                     <option>CSV Raw Data</option>
+                   </select>
+                 </div>
+                 <button class="btn-primary" onclick="alert('Generating System Report...')">Export Log</button>
+               </div>
+             </div>
+           </div>
+        </div>
+
+        <!-- View: Announcements -->
+        <div id="view-announcements" class="view-section">
+           <div class="grid-2">
+             <div class="data-container">
+               <div class="data-header"><h2>Broadcast Announcement</h2></div>
+               <div style="padding: 1.5rem;">
+                 <div class="form-group"><label>Message Content</label><textarea id="ann-message" class="form-control" rows="4"></textarea></div>
+                 <div class="form-group">
+                   <label>Target Audience</label>
+                   <select id="ann-target" class="form-control">
+                     <option value="both">All Students & Mentors</option>
+                     <option value="students">Students Only</option>
+                     <option value="mentors">Mentors Only</option>
+                   </select>
+                 </div>
+                 <button class="btn-primary" onclick="sendAnnouncement()">Broadcast Now</button>
+               </div>
+             </div>
+           </div>
+        </div>
+
+        <!-- View: Settings -->
+        <div id="view-settings" class="view-section">
+           <div class="grid-2">
+             <div class="data-container">
+               <div class="data-header"><h2>Manage Departments</h2></div>
+               <div style="padding: 1.5rem;">
+                 <div class="form-group">
+                   <label>Add New Department</label>
+                   <div style="display:flex; gap:0.5rem;">
+                     <input type="text" id="new-dept" class="form-control" placeholder="e.g. Mechanical Engineering">
+                     <button class="btn-primary" style="width:auto;" onclick="addDepartment()">Add</button>
+                   </div>
+                 </div>
+                 <hr style="border:0; border-top:1px solid var(--border); margin:1rem 0;">
+                 <ul id="dept-list" style="list-style:none; padding:0;"></ul>
+               </div>
+             </div>
+             
+             <div class="data-container">
+               <div class="data-header"><h2>Manage Years</h2></div>
+               <div style="padding: 1.5rem;">
+                 <div class="form-group">
+                   <label>Add Academic Year</label>
+                   <div style="display:flex; gap:0.5rem;">
+                     <input type="text" id="new-year" class="form-control" placeholder="e.g. 5">
+                     <button class="btn-primary" style="width:auto;" onclick="addYear()">Add</button>
+                   </div>
+                 </div>
+                 <hr style="border:0; border-top:1px solid var(--border); margin:1rem 0;">
+                 <ul id="year-list" style="list-style:none; padding:0;"></ul>
+               </div>
+             </div>
+           </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+  <script>
+    let dbs = null;
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const user = checkAuth('Admin');
+      if(!user) return;
+      
+      dbs = getDB();
+      loadOverview();
+      loadConfigData();
+      loadMentors();
+      loadStudents();
+      loadPerformance();
+    });
+
+    function loadConfigData() {
+      // Setup UI list
+      const depList = document.getElementById('dept-list');
+      if(depList) depList.innerHTML = dbs.Config.departments.map((d, i) => `<li style="display:flex;justify-content:space-between;padding:0.5rem 0;border-bottom:1px solid var(--border);"><span>${d}</span> <button class="action-btn" style="background:var(--danger);padding:0.2rem 0.5rem;" onclick="removeDepartment(${i})">Del</button></li>`).join('');
+      
+      const yList = document.getElementById('year-list');
+      if(yList) yList.innerHTML = dbs.Config.years.map((y, i) => `<li style="display:flex;justify-content:space-between;padding:0.5rem 0;border-bottom:1px solid var(--border);"><span>${y}</span> <button class="action-btn" style="background:var(--danger);padding:0.2rem 0.5rem;" onclick="removeYear(${i})">Del</button></li>`).join('');
+
+      // Populate Selectors
+      const depOptions = dbs.Config.departments.map(d => `<option value="${d}">${d}</option>`).join('');
+      const yrOptions = dbs.Config.years.map(y => `<option value="${y}">${y}</option>`).join('');
+      
+      const sDept = document.getElementById('s-dept'); if(sDept) sDept.innerHTML = depOptions;
+      const mDept = document.getElementById('m-dept'); if(mDept) mDept.innerHTML = depOptions;
+      const sYear = document.getElementById('s-year'); if(sYear) sYear.innerHTML = yrOptions;
+    }
+
+    function addDepartment() {
+      const el = document.getElementById('new-dept');
+      if(!el.value.trim()) return;
+      if(dbs.Config.departments.includes(el.value.trim())) { alert('Already exists'); return; }
+      dbs.Config.departments.push(el.value.trim());
+      setDB(dbs); loadConfigData(); el.value = '';
+    }
+    
+    function removeDepartment(idx) {
+      dbs.Config.departments.splice(idx, 1);
+      setDB(dbs); loadConfigData();
+    }
+
+    function addYear() {
+      const el = document.getElementById('new-year');
+      if(!el.value.trim()) return;
+      if(dbs.Config.years.includes(el.value.trim())) { alert('Already exists'); return; }
+      dbs.Config.years.push(el.value.trim());
+      setDB(dbs); loadConfigData(); el.value = '';
+    }
+
+    function removeYear(idx) {
+      dbs.Config.years.splice(idx, 1);
+      setDB(dbs); loadConfigData();
+    }
+
+    function switchView(viewId) {
+      document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+      
+      document.getElementById('view-' + viewId).classList.add('active');
+      event.currentTarget.classList.add('active');
+      
+      const titles = {
+        'overview': 'System Overview',
+        'mentors': 'Manage Mentors',
+        'students': 'Manage Students',
+        'performance': 'Monitor Performance',
+        'leaderboard': 'Overall Leaderboard',
+        'reports': 'Reports & Exports',
+        'announcements': 'Manage Announcements',
+        'settings': 'System Settings'
+      };
+      document.getElementById('page-title').textContent = titles[viewId];
+    }
+
+    function loadOverview() {
+      document.getElementById('stat-mentors').textContent = dbs.Mentors.length;
+      document.getElementById('stat-students').textContent = dbs.Students.length;
+    }
+
+    // --- MENTOR MANAGEMENT ---
+    function loadMentors() {
+      const tbody = document.getElementById('admin-mentors-table');
+      tbody.innerHTML = dbs.Mentors.map(m => `
+        <tr>
+          <td><strong>${m.name}</strong></td>
+          <td>${m.dept}</td>
+          <td>
+            <button class="action-btn" style="background:var(--secondary); padding:0.25rem 0.5rem; margin-right:0.25rem;" onclick="editMentor('${m.id}')">Edit</button>
+            <button class="action-btn" style="background:var(--danger); padding:0.25rem 0.5rem;" onclick="deleteUser('${m.id}', 'Mentor')">Delete</button>
+          </td>
+        </tr>
+      `).join('');
+
+      // Populate mentor select in Students view
+      const mentorOpts = dbs.Mentors.map(m => `<option value="${m.id}">${m.name}</option>`).join('');
+      document.getElementById('s-mentor').innerHTML = mentorOpts;
+      document.getElementById('bulk-mentor').innerHTML = `<option value="">-- No Mentor --</option>` + mentorOpts;
+    }
+
+    function resetMentorForm() {
+      document.getElementById('m-edit-id').value = '';
+      document.getElementById('m-name').value = '';
+      document.getElementById('m-email').value = '';
+      document.getElementById('m-dept').value = '';
+      document.getElementById('m-btn-save').textContent = 'Add Mentor';
+      document.getElementById('m-form-title').textContent = 'Add New Mentor';
+      document.getElementById('m-btn-cancel').style.display = 'none';
+    }
+
+    function editMentor(id) {
+      const mentor = dbs.Mentors.find(m => m.id === id);
+      const user = dbs.Users.find(u => u.id === id);
+      if(!mentor || !user) return;
+      
+      document.getElementById('m-edit-id').value = id;
+      document.getElementById('m-name').value = mentor.name;
+      document.getElementById('m-email').value = user.email;
+      document.getElementById('m-dept').value = mentor.dept;
+      
+      document.getElementById('m-btn-save').textContent = 'Update Mentor';
+      document.getElementById('m-form-title').textContent = 'Edit Mentor Details';
+      document.getElementById('m-btn-cancel').style.display = 'inline-block';
+    }
+
+    function saveMentor() {
+      const id = document.getElementById('m-edit-id').value;
+      const name = document.getElementById('m-name').value;
+      const email = document.getElementById('m-email').value;
+      const dept = document.getElementById('m-dept').value;
+
+      if(!name || !email) { alert("Fill all fields"); return; }
+
+      if(id) {
+        // Edit
+        const mIdx = dbs.Mentors.findIndex(m => m.id === id);
+        const uIdx = dbs.Users.findIndex(u => u.id === id);
+        if(mIdx > -1) { dbs.Mentors[mIdx].name = name; dbs.Mentors[mIdx].dept = dept; }
+        if(uIdx > -1) { dbs.Users[uIdx].name = name; dbs.Users[uIdx].email = email; }
+        alert("Mentor updated!");
+      } else {
+        // Add
+        const newId = 'mentor' + Date.now();
+        dbs.Mentors.push({ id: newId, name, dept });
+        dbs.Users.push({ id: newId, name, email, password: 'password', role: 'Mentor' });
+        alert("Mentor added!");
+      }
+      setDB(dbs);
+      resetMentorForm();
+      loadOverview(); loadMentors(); loadStudents();
+    }
+
+    // --- STUDENT MANAGEMENT ---
+    function loadStudents() {
+      const tbody = document.getElementById('admin-students-table');
+      tbody.innerHTML = dbs.Students.map(s => {
+        const m = dbs.Mentors.find(mentor => mentor.id === s.mentor_id);
+        return `
+        <tr>
+          <td><strong>${s.reg_no}</strong></td>
+          <td>${s.name}</td>
+          <td>${m ? m.name : 'None'}</td>
+          <td>
+            <button class="action-btn" style="background:var(--secondary); padding:0.25rem 0.5rem; margin-right:0.25rem;" onclick="editStudent('${s.id}')">Edit</button>
+            <button class="action-btn" style="background:var(--danger); padding:0.25rem 0.5rem;" onclick="deleteUser('${s.id}', 'Student')">Delete</button>
+          </td>
+        </tr>`;
+      }).join('');
+    }
+
+    function resetStudentForm() {
+      document.getElementById('s-edit-id').value = '';
+      document.getElementById('s-name').value = '';
+      document.getElementById('s-email').value = '';
+      document.getElementById('s-regno').value = '';
+      document.getElementById('s-dept').value = '';
+      const sMentor = document.getElementById('s-mentor');
+      for(let i=0; i<sMentor.options.length; i++) sMentor.options[i].selected = false;
+      document.getElementById('s-btn-save').textContent = 'Add & Assign Student';
+      document.getElementById('s-form-title').textContent = 'Add/Assign Student';
+      document.getElementById('s-btn-cancel').style.display = 'none';
+    }
+
+    function editStudent(id) {
+      const student = dbs.Students.find(s => s.id === id);
+      const user = dbs.Users.find(u => u.id === id);
+      if(!student || !user) return;
+      
+      document.getElementById('s-edit-id').value = id;
+      document.getElementById('s-name').value = student.name;
+      document.getElementById('s-email').value = user.email;
+      document.getElementById('s-regno').value = student.reg_no;
+      document.getElementById('s-dept').value = student.dept;
+      
+      const sMentor = document.getElementById('s-mentor');
+      const savedMentors = student.mentor_ids || [student.mentor_id];
+      for(let i=0; i<sMentor.options.length; i++) {
+        sMentor.options[i].selected = savedMentors.includes(sMentor.options[i].value);
+      }
+
+      document.getElementById('s-btn-save').textContent = 'Update Student';
+      document.getElementById('s-form-title').textContent = 'Edit Student Details';
+      document.getElementById('s-btn-cancel').style.display = 'inline-block';
+    }
+
+    function saveStudent() {
+      const id = document.getElementById('s-edit-id').value;
+      const name = document.getElementById('s-name').value;
+      const email = document.getElementById('s-email').value;
+      const regno = document.getElementById('s-regno').value;
+      const dept = document.getElementById('s-dept').value;
+      const year = document.getElementById('s-year').value;
+      const sMentor = document.getElementById('s-mentor');
+      const mentorIds = Array.from(sMentor.selectedOptions).map(opt => opt.value);
+
+      if(!name || !email || !regno) { alert("Fill all fields"); return; }
+
+      if(id) {
+        // Edit 
+        const sIdx = dbs.Students.findIndex(s => s.id === id);
+        const uIdx = dbs.Users.findIndex(u => u.id === id);
+        if(sIdx > -1) { 
+          dbs.Students[sIdx].name = name; 
+          dbs.Students[sIdx].reg_no = regno; 
+          dbs.Students[sIdx].dept = dept; 
+          dbs.Students[sIdx].year = year;
+          dbs.Students[sIdx].mentor_ids = mentorIds; 
+          dbs.Students[sIdx].mentor_id = mentorIds.length > 0 ? mentorIds[0] : null; 
+        }
+        if(uIdx > -1) { 
+          dbs.Users[uIdx].name = name; 
+          dbs.Users[uIdx].email = email; 
+        }
+        alert("Student updated!");
+      } else {
+        // Add
+        const newId = 'student' + Date.now();
+        dbs.Students.push({ id: newId, name, reg_no: regno, dept, mentor_ids: mentorIds, mentor_id: mentorIds[0], cgpa: 0, year: year, remarks: '' });
+        dbs.Users.push({ id: newId, name, email, password: 'password', role: 'Student' });
+        alert("Student added!");
+      }
+      setDB(dbs);
+      resetStudentForm();
+      loadOverview(); loadStudents(); loadPerformance();
+    }
+
+    function deleteUser(id, type) {
+      if(!confirm(`Are you sure you want to delete this ${type}?`)) return;
+      
+      if(type === 'Mentor') {
+        dbs.Mentors = dbs.Mentors.filter(m => m.id !== id);
+      } else {
+        dbs.Students = dbs.Students.filter(s => s.id !== id);
+      }
+      dbs.Users = dbs.Users.filter(u => u.id !== id);
+      setDB(dbs);
+      loadOverview(); loadMentors(); loadStudents(); loadPerformance();
+    }
+
+    // --- SYSTEM PERFORMANCE & ANNOUNCEMENTS ---
+    function loadPerformance() {
+      let totalCgpa = 0;
+      let ratedStudents = 0;
+      dbs.Students.forEach(s => {
+        if(s.cgpa) { totalCgpa += parseFloat(s.cgpa); ratedStudents++; }
+      });
+      const avgCgpa = ratedStudents > 0 ? (totalCgpa/ratedStudents).toFixed(2) : 0;
+
+      let totalAtt = 0;
+      let attCount = 0;
+      dbs.Attendance.forEach(a => {
+        totalAtt += parseFloat(a.percentage);
+        attCount++;
+      });
+      const avgAtt = attCount > 0 ? (totalAtt/attCount).toFixed(1) : 0;
+
+      document.getElementById('admin-performance-stats').innerHTML = `
+        <div style="margin-bottom: 2rem;">
+          <h3 style="color:var(--text-main); margin-bottom:0.5rem;">System-wide Avg CGPA</h3>
+          <h1 style="color:var(--primary); font-size:3rem;">${avgCgpa}</h1>
+          <p style="color:var(--text-muted);">Across ${ratedStudents} scored students</p>
+        </div>
+        <hr style="border:0; border-top:1px solid var(--border); margin-bottom:1.5rem;">
+        <div>
+          <h3 style="color:var(--text-main); margin-bottom:0.5rem;">System-wide Avg Attendance</h3>
+          <h1 style="color:var(--success); font-size:3rem;">${avgAtt}%</h1>
+          <p style="color:var(--text-muted);">Based on tracked attendance records</p>
+        </div>
+      `;
+      
+      let totalFees = 0, collectedFees = 0, dueFees = 0, dueCount = 0;
+      if(dbs.Fees) {
+         dbs.Fees.forEach(f => {
+            totalFees += f.total || 0;
+            collectedFees += f.paid || 0;
+            dueFees += f.due || 0;
+            if(f.due > 0) dueCount++;
+         });
+      }
+      
+      document.getElementById('admin-financial-stats').innerHTML = `
+        <div style="margin-bottom: 2rem;">
+          <h3 style="color:var(--text-main); margin-bottom:0.5rem;">Total Fees Collected</h3>
+          <h1 style="color:var(--success); font-size:3rem;">₹${collectedFees.toLocaleString()}</h1>
+          <p style="color:var(--text-muted);">Out of ₹${totalFees.toLocaleString()} Total Expected</p>
+        </div>
+        <hr style="border:0; border-top:1px solid var(--border); margin-bottom:1.5rem;">
+        <div>
+          <h3 style="color:var(--danger); margin-bottom:0.5rem;">Outstanding Dues</h3>
+          <h1 style="color:var(--danger); font-size:3rem;">₹${dueFees.toLocaleString()}</h1>
+          <p style="color:var(--text-muted);">${dueCount} students have pending payments</p>
+        </div>
+      `;
+
+      // Populate Leaderboard
+      const sorted = [...dbs.Students].sort((a,b) => (parseFloat(b.cgpa||0) - parseFloat(a.cgpa||0)));
+      const topStudents = sorted.slice(0, 5); // Top 5
+      document.getElementById('leaderboard-table').innerHTML = topStudents.map((s, idx) => {
+        const at = dbs.Attendance.find(a => a.student_id === s.id);
+        const attStr = at ? at.percentage + '%' : 'N/A';
+        return `<tr>
+          <td><strong style="color:var(--primary); font-size:1.2rem;">#${idx+1}</strong></td>
+          <td><strong>${s.name}</strong><br><small style="color:var(--text-muted)">${s.dept}</small></td>
+          <td>${s.cgpa || '-'}</td>
+          <td>${attStr}</td>
+        </tr>`;
+      }).join('');
+    }
+
+    function sendAnnouncement() {
+      const msgText = document.getElementById('ann-message').value;
+      const target = document.getElementById('ann-target').value;
+
+      if(!msgText.trim()) { alert("Message cannot be empty!"); return; }
+
+      let receivers = [];
+      if(target === 'both' || target === 'students') {
+        receivers = receivers.concat(dbs.Students.map(s => s.id));
+      }
+      if(target === 'both' || target === 'mentors') {
+        receivers = receivers.concat(dbs.Mentors.map(m => m.id));
+      }
+
+      receivers.forEach(rid => {
+        dbs.Messages.push({
+          id: 'ann' + Date.now() + Math.random(),
+          sender_id: 'admin',
+          receiver_id: rid,
+          message: "📢 ADMIN BROADCAST: " + msgText,
+          timestamp: new Date().toISOString()
+        });
+      });
+
+      setDB(dbs);
+      document.getElementById('ann-message').value = '';
+      alert(`Announcement broadcasted to ${receivers.length} users!`);
+    }
+
+    // --- BULK UPLOAD CSV ---
+    function uploadCSV() {
+      const fileInput = document.getElementById('csv-upload');
+      if(!fileInput.files || fileInput.files.length === 0) {
+        alert("Please select a CSV file first."); return;
+      }
+      
+      const mId = document.getElementById('bulk-mentor').value;
+      const file = fileInput.files[0];
+      const reader = new FileReader();
+      
+      reader.onload = function(e) {
+        const text = e.target.result;
+        const lines = text.split('\n');
+        
+        let imported = 0;
+        // Skip header line (idx 0), assume format: Name, RegNo, Email, Department, Year
+        for(let i=1; i<lines.length; i++) {
+          const row = lines[i].trim();
+          if(!row) continue;
+          
+          const cols = row.split(',');
+          if(cols.length >= 5) {
+            const name = cols[0].trim();
+            const regno = cols[1].trim();
+            const email = cols[2].trim();
+            const dept = cols[3].trim();
+            const year = cols[4].trim();
+
+            const newId = 'student' + Date.now() + Math.random().toString().substr(2,5);
+            dbs.Students.push({ id: newId, name, reg_no: regno, dept, mentor_id: mId, cgpa: 0, year: year, remarks: '' });
+            dbs.Users.push({ id: newId, name, email, password: 'password', role: 'Student' });
+            imported++;
+          }
+        }
+        
+        setDB(dbs);
+        loadOverview(); loadStudents(); loadPerformance();
+        fileInput.value = '';
+        alert(`Successfully imported ${imported} students!`);
+      };
+      
+      reader.readAsText(file);
+    }
+  </script>
+</body>
+</html>
